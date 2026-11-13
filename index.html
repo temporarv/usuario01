@@ -142,6 +142,9 @@ main {
   display: none !important;
 }
 
+/* El recuadro sin cámara activa es una zona táctil de inicio. */
+.camera-placeholder { cursor: pointer; touch-action: manipulation; }
+
 .camera-placeholder {
   position: absolute;
   inset: 0;
@@ -258,12 +261,12 @@ main {
 }
 
 .bottom-area {
-  /* Centro del botón = 1 diámetro desde la parte inferior de la ventana.
-     Distancia desde el borde inferior al botón = 0,5 diámetros. */
+  /* Centro del botón a 1 1/3 diámetros del borde inferior de la ventana.
+     El logo Tempora sube junto con el botón, sin cambiar su tamaño. */
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(var(--scan-button-diameter) * 0.5);
+  bottom: calc(var(--scan-button-diameter) * 0.8333333);
   margin: 0;
   padding: 0;
   display: flex;
@@ -481,7 +484,7 @@ main {
         </svg>
         <strong>Vista de la cámara</strong>
       </div>
-      <span class="camera-instruction">Presiona el botón inferior para activar la cámara</span>
+      <span class="camera-instruction">Para activar cámara tocar acá o en botón inferior</span>
     </div>
 
     <div class="focus-frame" aria-hidden="true">
@@ -558,6 +561,7 @@ function ajustarFondo() {
 window.addEventListener('load', ajustarFondo);
 window.addEventListener('resize', ajustarFondo);
 
+const cameraFrame = document.querySelector('.camera-frame');
 const video = document.getElementById('camera');
 const placeholder = document.getElementById('cameraPlaceholder');
 const scanButton = document.getElementById('scanButton');
@@ -928,6 +932,17 @@ continueScanButton.addEventListener('click', () => {
   startNoDetectionTimer();
   bottomStatus.textContent = 'Apuntar cámara para reconocimento de nombre';
   scanLoop();
+});
+
+// También se puede activar la cámara tocando cualquier parte del recuadro de imagen.
+// Si ya está funcionando o la cuenta está inactiva, no se inicia un nuevo intento.
+cameraFrame.addEventListener('click', async () => {
+  if (openingCamera || scanning || stream) return;
+  if (accountActive === false) {
+    showInactiveAccount();
+    return;
+  }
+  await startRecognition();
 });
 
 scanButton.addEventListener('click', async () => {
