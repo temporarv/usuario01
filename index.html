@@ -6,6 +6,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#514956">
 <link rel="manifest" href="./manifest.json">
+<!-- Configuración para instalar TEMPORA desde Safari en iPhone/iPad -->
+<link rel="apple-touch-icon" sizes="192x192" href="./tempora-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TEMPORA">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="format-detection" content="telephone=no">
 <title>TEMPORA</title>
 
 <style>
@@ -267,7 +273,7 @@ main {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(var(--scan-button-diameter) * 0.8333333);
+  bottom: calc(var(--scan-button-diameter) * 0.8333333 + env(safe-area-inset-bottom, 0px));
   margin: 0;
   padding: 0;
   display: flex;
@@ -469,7 +475,7 @@ main {
 <main>
   <section class="camera-frame" aria-label="Imagen en vivo de la cámara">
 
-    <video id="camera" autoplay muted playsinline hidden></video>
+    <video id="camera" autoplay muted playsinline webkit-playsinline hidden></video>
     <canvas id="ocrCanvas" hidden></canvas>
 
     <div class="camera-placeholder" id="cameraPlaceholder">
@@ -853,7 +859,7 @@ async function stopTracksOnly() {
 async function startRecognition() {
   if (openingCamera || scanning) return;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    bottomStatus.textContent = 'La cámara requiere HTTPS. Abre la página en GitHub Pages.';
+    bottomStatus.textContent = 'La cámara requiere HTTPS y un navegador compatible (Safari en iPhone).';
     return;
   }
   openingCamera = true;
@@ -868,6 +874,10 @@ async function startRecognition() {
       audio: false,
       video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
     });
+    // Safari en iPhone: mantener la vista de cámara dentro del recuadro, sin pantalla completa.
+    video.muted = true;
+    video.playsInline = true;
+    video.setAttribute('webkit-playsinline', '');
     video.srcObject = stream;
     video.hidden = false;
     placeholder.hidden = true;
